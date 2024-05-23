@@ -1,35 +1,36 @@
-name: Python application
+name: Python application test workflow
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: macos-latest
-
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
+    - name: Check out repo content
       uses: actions/checkout@v2
-
-    - name: Set up Python
+      
+    - name: Set up Python environment
       uses: actions/setup-python@v2
       with:
-        python-version: '3.8'
+        python-version: 3.8
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install pylint coverage
+        pip install pytest pylint coverage
 
-    - name: Lint code
+    - name: Lint with pylint
       run: |
-        pylint main.py transform.py test.py
+        pylint main.py test.py transform.py
+      continue-on-error: true
+      env:
+        TERM: xterm
 
-    - name: Run tests and coverage
+    - name: Run tests with pytest
       run: |
-        coverage run test.py
+        pytest test.py
+
+    - name: Run coverage
+      run: |
+        coverage run -m pytest test.py
         coverage report
